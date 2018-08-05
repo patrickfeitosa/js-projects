@@ -42,6 +42,8 @@ class CalcController {
     */
     clearAll() {
         this._operation = [];
+        this._lastNumber = '';
+        this._lastOperator = '';
         this.setLastNumberToDisplay();
     }
 
@@ -74,7 +76,7 @@ class CalcController {
                 this.pushOperation(value);
             } else {
                 let newValue = this.getLastOperation().toString() + value.toString();
-                this.setLastOperation(parseInt(newValue));
+                this.setLastOperation(parseFloat(newValue));
                 this.setLastNumberToDisplay();
             }
         }
@@ -89,6 +91,10 @@ class CalcController {
         this.displayCalc = lastNumber;
     }
 
+    /**
+     * Method to return the last item from this._operation
+     * @param {Boolean} isOperator 
+     */
     getLastItem(isOperator = true) {
         let lastItem;
         for (let i = this._operation.length - 1; i >= 0; i--) {
@@ -114,6 +120,9 @@ class CalcController {
         }
     }
 
+    /** 
+     * Method to return the current result
+    */
     getResult() {
         return eval(this._operation.join(''));
     }
@@ -147,6 +156,7 @@ class CalcController {
         }
         this.setLastNumberToDisplay();
     }
+
     /** 
      * Method that returns the last value in the Array
     */
@@ -175,6 +185,19 @@ class CalcController {
     */
     setError() {
         this.displayCalc = 'Error';
+    }
+
+    /** 
+     * Method to add the dot to the number
+    */
+    addDot(){
+        let lastOperation = this.getLastOperation();
+        if(this.isOperator(lastOperation) || !lastOperation){
+            this.pushOperation('0.');
+        }else{
+            this.setLastNumberToDisplay(lastOperation.toString() + '.');
+        }
+        this.setLastNumberToDisplay();
     }
 
     /**
@@ -212,7 +235,7 @@ class CalcController {
 
                 break;
             case 'ponto':
-                this.addOperation('.');
+                this.addDot();
 
                 break;
             case 'igual':
