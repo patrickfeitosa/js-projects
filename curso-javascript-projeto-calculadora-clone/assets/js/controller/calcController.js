@@ -3,6 +3,8 @@ class CalcController {
      * The constructor for the CalcController Class
     */
     constructor() {
+        this._lastOperator = '';
+        this._lastNumber = '';
         this._operation = [];
         this._locale = 'pt-BR';
         this._currentDate;
@@ -51,7 +53,6 @@ class CalcController {
         this.setLastNumberToDisplay();
     }
 
-
     /** 
      * Method that add a new operation
     */
@@ -83,15 +84,23 @@ class CalcController {
      * Method to set the current number in the calc display
     */
     setLastNumberToDisplay() {
-        let lastNumber;
+        let lastNumber = this.getLastItem(false);
+        if (!lastNumber) lastNumber = 0;
+        this.displayCalc = lastNumber;
+    }
+
+    getLastItem(isOperator = true) {
+        let lastItem;
         for (let i = this._operation.length - 1; i >= 0; i--) {
-            if (!this.isOperator(this._operation[i])) {
-                lastNumber = this._operation[i];
+            if (this.isOperator(this._operation[i]) == isOperator) {
+                lastItem = this._operation[i];
                 break;
             }
         }
-        if (!lastNumber) lastNumber = 0;
-        this.displayCalc = lastNumber;
+        if(!lastItem){
+            lastItem = (isOperator) ? this._lastOperator : this._lastNumber;
+        }
+        return lastItem;
     }
 
     /**
@@ -105,22 +114,36 @@ class CalcController {
         }
     }
 
+    getResult() {
+        return eval(this._operation.join(''));
+    }
+
     /** 
      * Main Method for make the operations happen
     */
     calc() {
         let currentLast = '';
-        if (this._operation.length > 3) {
-            currentLast = this._operation.pop();
+        this._lastOperator = this.getLastItem();
+
+        if (this._operation.length < 3) {
+            let firstItem = this._operation[0];
+            this._operation = [firstItem, this._lastOperator, this._lastNumber]
         }
 
-        let currentResult = eval(this._operation.join(''));
+        if (this._operation.length > 3) {
+            currentLast = this._operation.pop();
+            this._lastNumber = this.getResult();
+        } else if (this._operation.length == 3) {
+            this._lastNumber = this.getLastItem(false);
+        }
+
+        let currentResult = this.getResult();
         if (currentLast == '%') {
             currentResult /= 100;
             this._operation = [currentLast]
         } else {
             this._operation = [currentResult];
-            if(currentLast) this._operation.push(currentLast);
+            if (currentLast) this._operation.push(currentLast);
         }
         this.setLastNumberToDisplay();
     }
