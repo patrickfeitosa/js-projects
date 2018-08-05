@@ -3,6 +3,8 @@ class CalcController {
      * The constructor for the CalcController Class
     */
     constructor() {
+        this._defaultAudio = new Audio('./assets/sounds/click.mp3');
+        this._audioOnOff = false;
         this._lastOperator = '';
         this._lastNumber = '';
         this._operation = [];
@@ -16,6 +18,9 @@ class CalcController {
         this.initKeyboard();
     }
 
+    /** 
+     * Method to copy the content in the display to the clipboard
+    */
     copyToClipboard() {
         let input = document.createElement('input');
         input.value = this.displayCalc;
@@ -25,6 +30,9 @@ class CalcController {
         input.remove();
     }
 
+    /** 
+     * Method to paste the current value in the clipboard to the calc display
+    */
     pasteFromClipboard(){
         document.addEventListener('paste', e=>{
             let textCopied = e.clipboardData.getData('Text');
@@ -39,8 +47,31 @@ class CalcController {
         this.setDisplayDateTime()
         setInterval(() => {
             this.setDisplayDateTime()
-        }, 1000);
+        }, 1000);   
         this.pasteFromClipboard();
+        
+        document.querySelectorAll('.btn-ac').forEach(btn=>{
+            btn.addEventListener('dblclick', e=>{
+                this.toggleAudio();
+            })
+        })
+    }
+
+    /** 
+     * Method to enable the audio funcion
+    */
+    toggleAudio(){
+        this._audioOnOff = !this._audioOnOff;
+    }
+
+    /** 
+     * Method to play the audio
+    */
+    playAudio(){
+        if(this._audioOnOff){
+            this._defaultAudio.currentTime = 0;
+            this._defaultAudio.play();
+        }
     }
 
     /** 
@@ -48,6 +79,7 @@ class CalcController {
     */
     initKeyboard() {
         document.addEventListener('keyup', e => {
+            this.playAudio();
             switch (e.key) {
                 case 'Escape':
                     this.clearAll();
@@ -133,7 +165,6 @@ class CalcController {
      * Method that add a new operation
     */
     addOperation(value) {
-        console.log(this._operation);
         if (isNaN(this.getLastOperation())) {
 
             if (this.isOperator(value)) {
@@ -279,6 +310,7 @@ class CalcController {
      * @param {String} value String that will be used to switch between the operations
      */
     execBtn(value) {
+        this.playAudio();
         switch (value) {
             case 'ac':
                 this.clearAll();
@@ -379,6 +411,10 @@ class CalcController {
         return this._displayCalcEl.innerHTML;
     }
     set displayCalc(displayCalc) {
+        if(displayCalc.toString().length > 10 ){
+            this.setError();
+            return false;
+        }
         this._displayCalcEl.innerHTML = displayCalc;
     }
     get currentDate() {
