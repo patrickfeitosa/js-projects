@@ -13,6 +13,23 @@ class CalcController {
         this._timeEl = document.querySelector('#hora');
         this.initialize();
         this.initButtonEvents();
+        this.initKeyboard();
+    }
+
+    copyToClipboard() {
+        let input = document.createElement('input');
+        input.value = this.displayCalc;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('Copy');
+        input.remove();
+    }
+
+    pasteFromClipboard(){
+        document.addEventListener('paste', e=>{
+            let textCopied = e.clipboardData.getData('Text');
+            this.displayCalc = parseFloat(textCopied);
+        })
     }
 
     /** 
@@ -23,6 +40,63 @@ class CalcController {
         setInterval(() => {
             this.setDisplayDateTime()
         }, 1000);
+        this.pasteFromClipboard();
+    }
+
+    /** 
+     * Methot that initialize the keyboard events
+    */
+    initKeyboard() {
+        document.addEventListener('keyup', e => {
+            switch (e.key) {
+                case 'Escape':
+                    this.clearAll();
+                    break;
+
+                case 'Backspace':
+                    this.clearEntry();
+                    break;
+
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '%':
+                    this.addOperation(e.key);
+                    break;
+
+                case 'Enter':
+                case '=':
+                    this.calc();
+                    break;
+
+                case '.':
+                case ',':
+                    this.addDot();
+
+                    break;
+                case 'igual':
+                    this.calc();
+                    break;
+
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    this.addOperation(parseInt(e.key));
+                    break;
+
+                case 'c':
+                    if (e.ctrlKey) this.copyToClipboard()
+                    break;
+            }
+        });
     }
 
     /**
@@ -64,8 +138,6 @@ class CalcController {
 
             if (this.isOperator(value)) {
                 this.setLastOperation(value);
-            } else if (isNaN(value)) {
-
             } else {
                 this.pushOperation(value);
                 this.setLastNumberToDisplay();
@@ -103,7 +175,7 @@ class CalcController {
                 break;
             }
         }
-        if(!lastItem){
+        if (!lastItem) {
             lastItem = (isOperator) ? this._lastOperator : this._lastNumber;
         }
         return lastItem;
@@ -190,12 +262,13 @@ class CalcController {
     /** 
      * Method to add the dot to the number
     */
-    addDot(){
+    addDot() {
         let lastOperation = this.getLastOperation();
-        if( typeof lastOperation === 'string' && lastOperation.indexOf('.') > -1) return;
-        if(this.isOperator(lastOperation) || !lastOperation){
+        if (typeof lastOperation === 'string' && lastOperation.indexOf('.') > -1) return;
+
+        if (this.isOperator(lastOperation) || !lastOperation) {
             this.pushOperation('0.');
-        }else{
+        } else {
             this.setLastNumberToDisplay(lastOperation.toString() + '.');
         }
         this.setLastNumberToDisplay();
